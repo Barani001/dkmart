@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DK MART - Billing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
+    <!-- Top Nav -->
+    <header class="bg-gray-800 border-b border-gray-700 px-4 py-3 flex justify-between items-center sticky top-0 z-50">
+        <span class="text-xl font-black text-blue-500">DK MART</span>
+        <div class="flex items-center space-x-3 text-sm">
+            {% if role == 'Admin' %}
+            <a href="/admin" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg text-xs font-bold">Admin Dashboard</a>
+            {% endif %}
+            <span class="hidden sm:inline text-gray-400">{{ user }} ({{ role }})</span>
+            <a href="/logout" class="bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded-lg text-xs font-bold">Logout</a>
+        </div>
+    </header>
+
+    <div class="flex-1 p-4 grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-7xl mx-auto w-full">
+        <!-- Products Catalog -->
+        <div class="lg:col-span-7 bg-gray-800 rounded-2xl p-4 border border-gray-700 flex flex-col">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <h2 class="text-lg font-bold text-blue-400">Available Products</h2>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <div class="relative w-full sm:w-64">
+                        <input type="text" id="searchInput" onkeyup="filterItems()" onkeydown="handleBarcodeScan(event)" placeholder="Search or scan barcode..." autofocus class="w-full pl-9 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-xl text-sm focus:outline-none focus:border-blue-500 text-white placeholder-gray-400">
+                        <svg class="w-4 h-4 absolute left-3 top-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <button onclick="startCameraScanner()" title="Scan with Mobile Camera" class="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-xl flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto flex-1 max-h-[500px]">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-gray-700/50 text-gray-400 uppercase text-xs sticky top-0">
+                        <tr>
+                            <th class="p-3">Name</th>
+                            <th class="p-3">Price</th>
+                            <th class="p-3">Stock</th>
+                            <th class="p-3 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700" id="itemTable">
+                        {% for item in items %}
+                        <tr class="item-row hover:bg-gray-700/30" data-id="{{ item[0] }}" data-name="{{ item[1] }}" data-price="{{ item[2] }}" data-stock="{{ item[3] }}">
+                            <td class="p-3 font-medium item-name">{{ item[1] }}</td>
+                            <td class="p-3 text-emerald-400">₹{{ "%.2f"|format(item[2]) }}</td>
+                            <td class="p-3">{{ item[3] }}</td>
+                            <td class="p-3 text-right">
+                                <button onclick="addToCart({{ item[0] }}, '{{ item[1] }}', {{ item[2] }}, {{ item[3] }})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded-lg font-bold text-xs">+ Add</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Cart & Dispatch Section -->
+        <div class="lg:col-span-5 bg-gray-800 rounded-2xl p-4 border border-gray-700 flex flex-col">
+            <h2 class="text-lg font-bold mb-3 text-blue-400">Current Order & Receipt</h2>
+            
+            <div class="space-y-2 mb-4">
+                <input type="text" id="custName" placeholder="Customer Name (Optional)" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-xl text-sm focus:outline-none">
+                <input type="email" id="custEmail" placeholder="Email Address (for PDF Email Receipt)" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-xl text-sm focus:outline-none">
+                <input type="text" id="custPhone" placeholder="Phone Number (e.g. 919876543210 for WhatsApp)" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-xl text-sm focus:outline-none">
+            </div>
+
+            <div class="flex-1 overflow-y-auto max-h-56 border border-gray-700 rounded-xl p-2 mb-4 bg-gray-900/50 space-y-2" id="cartContainer">
+                <p class="text-gray-500 text-center py-6 text-sm">Cart is empty</p>
+            </div>
+
+            <div class="border-t border-gray-700 pt-3 mb-4 flex justify-between items-center">
+                <span class="text-gray-400 font-bold">Total:</span>
+                <span class="text-2xl font-black text-emerald-400" id="totalLbl">₹0.00</span>
+            </div>
+
+            <button onclick="checkout()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 font-bold rounded-xl shadow-lg transition duration-200">Complete Sale & Send Receipt</button>
+        </div>
+    </div>
+
+    <!-- Camera Scanner Modal -->
+    <div id="cameraModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl p-6 w-full max-w-md flex flex-col items-center">
+            <div class="flex justify-between items-center w-full mb-4">
+                <h3 class="text-lg font-bold text-blue-400">Scan Product Barcode</h3>
+                <button onclick="stopCameraScanner()" class="text-gray-400 hover:text-white font-bold text-lg">✕</button>
+            </div>
+            <div id="interactive" class="w-full overflow-hidden rounded-xl bg-black min-h-[250px] border border-gray-700"></div>
+            <p class="text-xs text-gray-400 mt-3 text-center">Point camera at a barcode to scan automatically.</p>
+        </div>
+    </div>
+
+    <script>
+        let cart = [];
+        let html5QrCode = null;
+
+        function filterItems() {
+            const query = document.getElementById("searchInput").value.toLowerCase();
+            const rows = document.querySelectorAll("#itemTable .item-row");
+            rows.forEach(row => {
+                const name = row.getAttribute("data-name").toLowerCase();
+                const id = row.getAttribute("data-id");
+                row.style.display = (name.includes(query) || id === query) ? "" : "none";
+            });
+        }
+
+        function handleBarcodeScan(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                const inputField = document.getElementById("searchInput");
+                processScannedCode(inputField.value.trim());
+                inputField.value = "";
+                filterItems();
+            }
+        }
+
+        function processScannedCode(scannedCode) {
+            if (!scannedCode) return;
+            const query = scannedCode.toLowerCase();
+            const rows = Array.from(document.querySelectorAll("#itemTable .item-row"));
+            const matchedRow = rows.find(row => {
+                const name = row.getAttribute("data-name").toLowerCase();
+                const id = row.getAttribute("data-id");
+                return name.includes(query) || id === query;
+            });
+
+            if (matchedRow) {
+                addToCart(parseInt(matchedRow.getAttribute("data-id")), matchedRow.getAttribute("data-name"), parseFloat(matchedRow.getAttribute("data-price")), parseInt(matchedRow.getAttribute("data-stock")));
+            } else {
+                alert(`Product not found: "${scannedCode}"`);
+            }
+        }
+
+        function startCameraScanner() {
+            document.getElementById("cameraModal").classList.remove("hidden");
+            if (!html5QrCode) html5QrCode = new Html5Qrcode("interactive");
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 150 } }, (decodedText) => {
+                processScannedCode(decodedText);
+                stopCameraScanner();
+            }, () => {}).catch(err => { alert("Camera failed: " + err); stopCameraScanner(); });
+        }
+
+        function stopCameraScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => document.getElementById("cameraModal").classList.add("hidden")).catch(() => document.getElementById("cameraModal").classList.add("hidden"));
+            } else {
+                document.getElementById("cameraModal").classList.add("hidden");
+            }
+        }
+
+        function addToCart(id, name, price, maxStock) {
+            let existing = cart.find(i => i.id === id);
+            if (existing) {
+                if (existing.qty + 1 > maxStock) return alert("Stock limit reached!");
+                existing.qty++;
+                existing.total = existing.qty * price;
+            } else {
+                cart.push({ id, name, price, qty: 1, total: price });
+            }
+            renderCart();
+        }
+
+        function renderCart() {
+            const container = document.getElementById("cartContainer");
+            if (!cart.length) return container.innerHTML = `<p class="text-gray-500 text-center py-6 text-sm">Cart is empty</p>`;
+            let total = 0;
+            container.innerHTML = cart.map((item, index) => {
+                total += item.total;
+                return `<div class="flex justify-between items-center p-2 bg-gray-800 rounded-lg text-sm">
+                    <div><div class="font-bold">${item.name}</div><div class="text-xs text-gray-400">₹${item.price.toFixed(2)} x ${item.qty}</div></div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-bold text-emerald-400">₹${item.total.toFixed(2)}</span>
+                        <button onclick="removeItem(${index})" class="text-red-400 hover:text-red-300 font-bold px-1">✕</button>
+                    </div>
+                </div>`;
+            }).join('');
+            document.getElementById("totalLbl").innerText = `₹${total.toFixed(2)}`;
+        }
+
+        function removeItem(index) { cart.splice(index, 1); renderCart(); }
+
+        async function checkout() {
+            if (!cart.length) return alert("Cart is empty!");
+            const res = await fetch("/api/checkout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    cart,
+                    customer: document.getElementById("custName").value,
+                    email: document.getElementById("custEmail").value,
+                    phone: document.getElementById("custPhone").value
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                window.open(data.pdf_url, '_blank');
+                if (data.whatsapp_url) {
+                    window.open(data.whatsapp_url, '_blank');
+                }
+                location.reload();
+            } else alert(data.message);
+        }
+    </script>
+</body>
+</html>

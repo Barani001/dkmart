@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DK MART - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-md bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-700">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-blue-500 tracking-wide">DK MART</h1>
+            <p class="text-gray-400 text-sm mt-1">Retail Billing & Management Portal</p>
+        </div>
+        {% if error %}
+        <div class="bg-red-500/20 border border-red-500 text-red-300 text-sm p-3 rounded-xl mb-6 text-center">
+            {{ error }}
+        </div>
+        {% endif %}
+        <form method="POST" class="space-y-5">
+            <div>
+                <label class="block text-xs uppercase text-gray-400 mb-2 font-bold">Username</label>
+                <input type="text" name="username" required class="w-full px-4 py-3 rounded-xl bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500" placeholder="Enter username">
+            </div>
+            <div>
+                <label class="block text-xs uppercase text-gray-400 mb-2 font-bold">Password</label>
+                <input type="password" name="password" required class="w-full px-4 py-3 rounded-xl bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500" placeholder="Enter password">
+            </div>
+            <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 font-bold rounded-xl shadow-lg transition duration-200">Sign In</button>
+        </form>
+    </div>
+</body>
+</html>
