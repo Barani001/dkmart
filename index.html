@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="DK MART — Retail Billing & Management System built with Python, Flask and SQLite.">
+  <meta name="theme-color" content="#0b1020">
+  <title>DK MART — Retail Billing & Management System</title>
+  <style>
+    :root{--bg:#070b16;--panel:#0e1526;--panel2:#111a2e;--text:#f7f9fc;--muted:#9ba8bd;--line:rgba(255,255,255,.09);--accent:#67e8f9;--accent2:#818cf8;--good:#34d399;--shadow:0 24px 80px rgba(0,0,0,.35)}
+    *{box-sizing:border-box;margin:0;padding:0} html{scroll-behavior:smooth}
+    body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 80% 0%,rgba(129,140,248,.16),transparent 34%),radial-gradient(circle at 10% 20%,rgba(103,232,249,.09),transparent 30%),var(--bg);color:var(--text);line-height:1.6}
+    a{color:inherit;text-decoration:none}.container{width:min(1120px,92%);margin:auto}
+    nav{position:sticky;top:0;z-index:10;background:rgba(7,11,22,.76);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+    .nav-inner{height:72px;display:flex;align-items:center;justify-content:space-between}.brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:1.1rem}.logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;color:#07101b;font-weight:900;box-shadow:0 8px 28px rgba(103,232,249,.18)}
+    .nav-links{display:flex;gap:26px;color:var(--muted);font-size:.94rem}.nav-links a:hover{color:var(--text)}
+    .hero{padding:105px 0 80px}.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:58px;align-items:center}.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.035);color:#cbd5e1;font-size:.82rem;margin-bottom:22px}.dot{width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 16px var(--good)}
+    h1{font-size:clamp(3rem,7vw,5.4rem);line-height:.98;letter-spacing:-.055em;max-width:700px}.gradient{background:linear-gradient(100deg,var(--accent),#fff 45%,#a5b4fc);-webkit-background-clip:text;background-clip:text;color:transparent}.hero p{color:var(--muted);font-size:1.1rem;max-width:620px;margin:25px 0 30px}.actions{display:flex;gap:12px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:12px;border:1px solid var(--line);font-weight:700;transition:.2s}.btn:hover{transform:translateY(-2px)}.btn-primary{background:linear-gradient(135deg,var(--accent),#8b9cf9);color:#07101b;border:none}.btn-secondary{background:rgba(255,255,255,.04)}
+    .dashboard{border:1px solid var(--line);background:linear-gradient(145deg,rgba(17,26,46,.96),rgba(10,15,28,.96));border-radius:24px;box-shadow:var(--shadow);padding:16px;transform:rotate(1.2deg)}.window{border:1px solid var(--line);border-radius:17px;overflow:hidden;background:#0a1020}.window-bar{height:42px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:7px;padding:0 14px}.window-bar i{width:8px;height:8px;border-radius:50%;background:#334155}.screen{padding:18px}.screen-top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:18px}.mini-title{font-weight:800}.mini-pill{font-size:.7rem;color:#a5f3fc;border:1px solid rgba(103,232,249,.22);background:rgba(103,232,249,.07);padding:5px 9px;border-radius:999px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.stat{padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.025)}.stat small{display:block;color:var(--muted);font-size:.68rem}.stat strong{font-size:1.05rem}.chart{height:120px;margin-top:10px;border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;align-items:end;gap:6px}.bar{flex:1;border-radius:5px 5px 2px 2px;background:linear-gradient(to top,var(--accent2),var(--accent));opacity:.82}.b1{height:32%}.b2{height:54%}.b3{height:43%}.b4{height:72%}.b5{height:58%}.b6{height:88%}.b7{height:67%}
+    section{padding:80px 0}.section-head{max-width:720px;margin-bottom:34px}.kicker{color:var(--accent);font-size:.82rem;font-weight:800;text-transform:uppercase;letter-spacing:.14em}.section-head h2{font-size:clamp(2rem,4vw,3.2rem);line-height:1.08;margin:9px 0 12px;letter-spacing:-.035em}.section-head p{color:var(--muted)}
+    .features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.feature,.tech,.demo{border:1px solid var(--line);background:rgba(255,255,255,.025);border-radius:18px;padding:23px}.icon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:rgba(103,232,249,.08);border:1px solid rgba(103,232,249,.15);font-size:1.2rem;margin-bottom:16px}.feature h3{font-size:1.05rem;margin-bottom:7px}.feature p,.tech p{color:var(--muted);font-size:.92rem}
+    .stack{display:flex;flex-wrap:wrap;gap:10px}.tag{padding:9px 13px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.035);color:#dbe4f0;font-size:.88rem}
+    .demo{display:grid;grid-template-columns:1fr auto;gap:30px;align-items:center;background:linear-gradient(135deg,rgba(103,232,249,.07),rgba(129,140,248,.08));}.demo h3{font-size:1.55rem;margin:5px 0 8px}.demo p{color:var(--muted);max-width:650px}.status{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:.82rem;color:#cbd5e1}.status span{width:8px;height:8px;border-radius:50%;background:#fbbf24}
+    footer{border-top:1px solid var(--line);padding:30px 0;color:var(--muted);font-size:.9rem}.footer-inner{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}.footer-inner a:hover{color:var(--text)}
+    @media(max-width:820px){.hero-grid{grid-template-columns:1fr}.dashboard{transform:none}.features{grid-template-columns:1fr 1fr}.nav-links{display:none}.demo{grid-template-columns:1fr}}
+    @media(max-width:560px){.hero{padding-top:75px}.features{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.hero p{font-size:1rem}section{padding:62px 0}}
+  </style>
+</head>
+<body>
+  <nav><div class="container nav-inner"><a class="brand" href="#top"><span class="logo">DK</span><span>DK MART</span></a><div class="nav-links"><a href="#features">Features</a><a href="#stack">Tech Stack</a><a href="#demo">Demo</a><a href="https://github.com/barani001/dk-mart" target="_blank" rel="noopener">GitHub ↗</a></div></div></nav>
+
+  <main id="top">
+    <section class="hero"><div class="container hero-grid">
+      <div>
+        <div class="eyebrow"><span class="dot"></span> Retail software project · Flask powered</div>
+        <h1>Run your store with <span class="gradient">DK MART.</span></h1>
+        <p>A modern retail billing and management system for products, sales, invoices and inventory — built as a full-stack Python Flask project.</p>
+        <div class="actions"><a class="btn btn-primary" href="#demo">View project</a><a class="btn btn-secondary" href="https://github.com/barani001/dk-mart" target="_blank" rel="noopener">View source on GitHub</a></div>
+      </div>
+      <div class="dashboard" aria-label="DK MART dashboard preview"><div class="window"><div class="window-bar"><i></i><i></i><i></i></div><div class="screen"><div class="screen-top"><span class="mini-title">Sales Dashboard</span><span class="mini-pill">LIVE UI</span></div><div class="cards"><div class="stat"><small>Revenue</small><strong>₹48.2K</strong></div><div class="stat"><small>Orders</small><strong>126</strong></div><div class="stat"><small>Products</small><strong>842</strong></div></div><div class="chart"><span class="bar b1"></span><span class="bar b2"></span><span class="bar b3"></span><span class="bar b4"></span><span class="bar b5"></span><span class="bar b6"></span><span class="bar b7"></span></div></div></div></div>
+    </div></section>
+
+    <section id="features"><div class="container"><div class="section-head"><div class="kicker">Capabilities</div><h2>Everything a small retail workflow needs.</h2><p>Designed around everyday billing and store-management tasks, with an admin-focused dashboard and practical receipt options.</p></div><div class="features">
+      <article class="feature"><div class="icon">🔐</div><h3>Role-based login</h3><p>Separate admin and staff access for day-to-day operations.</p></article>
+      <article class="feature"><div class="icon">📦</div><h3>Inventory management</h3><p>Manage products and stock from a centralized interface.</p></article>
+      <article class="feature"><div class="icon">🧾</div><h3>Billing & invoices</h3><p>Build carts, complete sales and generate PDF invoices.</p></article>
+      <article class="feature"><div class="icon">📊</div><h3>Sales analytics</h3><p>Track sales and revenue through the admin dashboard.</p></article>
+      <article class="feature"><div class="icon">📱</div><h3>Receipt sharing</h3><p>Support for optional email receipts and WhatsApp sharing.</p></article>
+      <article class="feature"><div class="icon">▣</div><h3>Barcode / QR scanning</h3><p>Camera scanning support for faster product workflows.</p></article>
+    </div></div></section>
+
+    <section id="stack"><div class="container"><div class="section-head"><div class="kicker">Technology</div><h2>Built with a practical Python stack.</h2><p>The project combines a Flask backend with a lightweight browser UI and SQLite data storage.</p></div><div class="tech"><div class="stack"><span class="tag">Python</span><span class="tag">Flask</span><span class="tag">SQLite</span><span class="tag">ReportLab</span><span class="tag">HTML</span><span class="tag">CSS</span><span class="tag">JavaScript</span><span class="tag">Tailwind CSS</span><span class="tag">Chart.js</span><span class="tag">html5-qrcode</span><span class="tag">Gunicorn</span></div></div></div></section>
+
+    <section id="demo"><div class="container"><div class="demo"><div><div class="kicker">Next step</div><h3>Take DK MART from repository to live app.</h3><p>This GitHub Page is the project showcase. The Flask application should be deployed separately on a Python-capable host such as Render.</p><div class="status"><span></span> Live demo URL not configured yet</div></div><div class="actions"><a class="btn btn-primary" href="https://github.com/barani001/dk-mart" target="_blank" rel="noopener">Open GitHub</a></div></div></div></section>
+  </main>
+
+  <footer><div class="container footer-inner"><span>© <span id="year"></span> DK MART</span><span>Built with Python · Flask · SQLite</span></div></footer>
+  <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+</body>
+</html>

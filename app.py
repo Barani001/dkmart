@@ -9,7 +9,6 @@ import smtplib
 from email.message import EmailMessage
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, send_from_directory
-from werkzeug.security import generate_password_hash, check_password_hash
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
@@ -60,7 +59,7 @@ def init_db():
     # Default Admin Account
     cursor.execute("SELECT * FROM users WHERE role='Admin'")
     if not cursor.fetchone():
-        cursor.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", ("admin", generate_password_hash("admin123"), "Admin"))
+        cursor.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", ("admin", "admin123", "Admin"))
     
     # Populate Full 40 Item Catalog if empty
     cursor.execute("SELECT COUNT(*) FROM inventory")
@@ -111,8 +110,6 @@ def init_db():
         
     conn.commit()
     conn.close()
-
-init_db()
 
 # --- HELPER: SEND EMAIL RECEIPT ---
 def send_email_receipt(recipient_email, customer_name, receipt_id, filepath):
@@ -218,13 +215,13 @@ def login():
         password = request.form.get("password").strip()
         conn = sqlite3.connect("shop_system.db")
         cursor = conn.cursor()
-        cursor.execute("SELECT username, password, role FROM users WHERE username=?", (username,))
+        cursor.execute("SELECT username, role FROM users WHERE username=? AND password=?", (username, password))
         user = cursor.fetchone()
         conn.close()
-        if user and check_password_hash(user[1], password):
+        if user:
             session["user"] = user[0]
-            session["role"] = user[2]
-            return redirect(url_for("admin") if user[2] == "Admin" else url_for("billing"))
+            session["role"] = user[1]
+            return redirect(url_for("admin") if user[1] == "Admin" else url_for("billing"))
         return render_template("login.html", error="Invalid username or password.")
     return render_template("login.html")
 
@@ -272,7 +269,7 @@ def add_staff():
     try:
         conn = sqlite3.connect("shop_system.db")
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO users (username, password, role) VALUES (?, ?, 'Staff')", (data['username'], generate_password_hash(data['password'])))
+        cursor.execute("INSERT INTO users (username, password, role) VALUES (?, ?, 'Staff')", (data['username'], data['password']))
         conn.commit()
         conn.close()
         return jsonify({"success": True, "message": f"Staff '{data['username']}' created successfully!"})
@@ -351,8 +348,6 @@ def checkout():
 
 @app.route("/invoices/<filename>")
 def download_invoice(filename):
-    if "user" not in session:
-        return redirect(url_for("login"))
     return send_from_directory("invoices", filename)
 
 if __name__ == "__main__":

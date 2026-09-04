@@ -87,23 +87,3 @@ DK-MART/
 │   └── admin.html
 └── static/
 ```
-
-
-## Free Render deployment
-
-1. Push this repository to GitHub.
-2. In Render, create a Web Service from the repository, or use the included `render.yaml`.
-3. Build command: `pip install -r requirements.txt`
-4. Start command: `gunicorn app:app`
-5. Set `SECRET_KEY` (Render can generate it) and optional SMTP variables in the Render Environment settings.
-
-### Demo login
-
-- Username: `admin`
-- Password: `admin123`
-
-**Change the default admin password before using this for real business data.**
-
-### Important database note
-
-This version uses SQLite for simplicity. Free cloud web-service filesystems are not a reliable permanent database, so sales/inventory data may be lost after a redeploy/restart. For production use, migrate the app to PostgreSQL or another persistent database.

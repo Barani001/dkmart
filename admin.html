@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DK MART - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
+    <!-- Navigation Bar -->
+    <header class="bg-gray-800 border-b border-gray-700 px-4 py-3 flex justify-between items-center">
+        <span class="text-xl font-black text-blue-500">DK MART ADMIN</span>
+        <div class="flex items-center space-x-3 text-sm">
+            <a href="/billing" class="bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded-lg text-xs font-bold">Billing Page</a>
+            <a href="/logout" class="bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded-lg text-xs font-bold">Logout</a>
+        </div>
+    </header>
+
+    <div class="p-4 max-w-7xl mx-auto w-full grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Analytics & Staff Admin Panel -->
+        <div class="space-y-6">
+            <!-- Metrics Cards -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gray-800 p-4 rounded-2xl border border-gray-700">
+                    <p class="text-xs text-gray-400 font-bold uppercase">Revenue</p>
+                    <p class="text-2xl font-black text-emerald-400 mt-1">₹{{ "%.2f"|format(total_rev) }}</p>
+                </div>
+                <div class="bg-gray-800 p-4 rounded-2xl border border-gray-700">
+                    <p class="text-xs text-gray-400 font-bold uppercase">Items Sold</p>
+                    <p class="text-2xl font-black text-blue-400 mt-1">{{ total_sales }}</p>
+                </div>
+            </div>
+
+            <!-- Create Staff Account Form -->
+            <div class="bg-gray-800 p-5 rounded-2xl border border-gray-700">
+                <h3 class="text-md font-bold text-indigo-400 mb-3">Create Staff Account</h3>
+                <div class="space-y-3">
+                    <input type="text" id="staffUser" placeholder="Staff Username" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-xl text-sm focus:outline-none">
+                    <input type="password" id="staffPass" placeholder="Staff Password" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-xl text-sm focus:outline-none">
+                    <button onclick="createStaff()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 font-bold text-sm rounded-xl">Create Account</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Analytics Chart -->
+        <div class="md:col-span-2 bg-gray-800 p-5 rounded-2xl border border-gray-700">
+            <h3 class="text-md font-bold text-blue-400 mb-4">Sales & Revenue Analytics</h3>
+            <canvas id="salesChart" class="w-full max-h-72"></canvas>
+        </div>
+
+        <!-- Inventory Item Management Section -->
+        <div class="md:col-span-3 bg-gray-800 p-5 rounded-2xl border border-gray-700">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-blue-400">Inventory Items Management</h3>
+                <button onclick="openModal('add')" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-xl text-xs font-bold">+ Add New Item</button>
+            </div>
+            <div class="overflow-x-auto max-h-80">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-gray-700/50 text-gray-400 uppercase text-xs sticky top-0">
+                        <tr>
+                            <th class="p-3">ID</th>
+                            <th class="p-3">Item Name</th>
+                            <th class="p-3">Price</th>
+                            <th class="p-3">Stock</th>
+                            <th class="p-3 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700">
+                        {% for item in items %}
+                        <tr class="hover:bg-gray-700/30">
+                            <td class="p-3 text-gray-400">{{ item[0] }}</td>
+                            <td class="p-3 font-medium">{{ item[1] }}</td>
+                            <td class="p-3 text-emerald-400">₹{{ "%.2f"|format(item[2]) }}</td>
+                            <td class="p-3">{{ item[3] }}</td>
+                            <td class="p-3 text-right space-x-2">
+                                <button onclick="openModal('edit', {{ item[0] }}, '{{ item[1] }}', {{ item[2] }}, {{ item[3] }})" class="bg-yellow-600 hover:bg-yellow-500 px-3 py-1 rounded-lg text-xs font-bold">Edit</button>
+                                <button onclick="deleteItem({{ item[0] }})" class="bg-red-600 hover:bg-red-500 px-3 py-1 rounded-lg text-xs font-bold">Delete</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Add/Edit Item -->
+    <div id="itemModal" class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl p-6 w-full max-w-md">
+            <h3 id="modalTitle" class="text-lg font-bold mb-4 text-blue-400">Add Item</h3>
+            <input type="hidden" id="itemId">
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs uppercase text-gray-400 mb-1">Item Name</label>
+                    <input type="text" id="itemName" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-xl text-sm focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-gray-400 mb-1">Price (₹)</label>
+                    <input type="number" step="0.01" id="itemPrice" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-xl text-sm focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-gray-400 mb-1">Stock Quantity</label>
+                    <input type="number" id="itemStock" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-xl text-sm focus:outline-none">
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button onclick="closeModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-xs font-bold rounded-xl">Cancel</button>
+                <button onclick="saveItem()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-xs font-bold rounded-xl">Save Item</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAction = 'add';
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ dates | tojson }},
+                datasets: [{
+                    label: 'Revenue (₹)',
+                    data: {{ revenues | tojson }},
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { labels: { color: 'white' } } },
+                scales: {
+                    x: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' } },
+                    y: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' } }
+                }
+            }
+        });
+
+        async function createStaff() {
+            const username = document.getElementById("staffUser").value.trim();
+            const password = document.getElementById("staffPass").value.trim();
+            if(!username || !password) return alert("Fill all fields.");
+            const res = await fetch("/api/add_staff", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            alert(data.message);
+            if(data.success) location.reload();
+        }
+
+        function openModal(action, id='', name='', price='', stock='') {
+            currentAction = action;
+            document.getElementById('modalTitle').innerText = action === 'add' ? 'Add New Item' : 'Edit Item';
+            document.getElementById('itemId').value = id;
+            document.getElementById('itemName').value = name;
+            document.getElementById('itemPrice').value = price;
+            document.getElementById('itemStock').value = stock;
+            document.getElementById('itemModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('itemModal').classList.add('hidden');
+        }
+
+        async function saveItem() {
+            const id = document.getElementById('itemId').value;
+            const name = document.getElementById('itemName').value.trim();
+            const price = document.getElementById('itemPrice').value;
+            const stock = document.getElementById('itemStock').value;
+
+            if(!name || !price || !stock) return alert("Fill all fields.");
+
+            const res = await fetch("/api/manage_item", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: currentAction, id, name, price, stock })
+            });
+            const data = await res.json();
+            if(data.success) {
+                location.reload();
+            } else {
+                alert(data.message || "Operation failed.");
+            }
+        }
+
+        async function deleteItem(id) {
+            if(!confirm("Are you sure you want to delete this item?")) return;
+            const res = await fetch("/api/manage_item", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: 'delete', id })
+            });
+            const data = await res.json();
+            if(data.success) {
+                location.reload();
+            } else {
+                alert(data.message || "Delete failed.");
+            }
+        }
+    </script>
+</body>
+</html>
